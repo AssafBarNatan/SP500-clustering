@@ -42,7 +42,7 @@ def risk(df: pd.DataFrame, window = 10) -> pd.DataFrame:
   """
   return df.rolling(window).std()*np.sqrt(window/(window-1))
 
-def sharpe_normalize(df: pd.DataFrame, window = 10) -> pd.DataFrame:
+def sharpe_normalize(df: pd.DataFrame, window = None) -> pd.DataFrame:
   """
   Parameters
   ----------
@@ -60,16 +60,26 @@ def sharpe_normalize(df: pd.DataFrame, window = 10) -> pd.DataFrame:
         - sigma(t) = the standard variation of r(t) at time t
         - r_f(t) = risk-free rate = mean over all columns of r(t)
         - Sharpe_t = (r(t) - r_f(t)) / sigma(t)
-      To estimate sigma(t), we use a sliding window around t.
+      To estimate sigma(t), we use a sliding window around t. If window 
+      is None, then we estimate sigma as a constant.
 
       Warning: the returned dataframe is (window) + 1 entries shorter than 
-      the input series.
+      the input series, or 1 entry shorter if window is None
   """
 
   df_c = copy.deepcopy(df)
   ROR = df_c.pct_change().dropna()
-  sigma = risk(ROR, window)
-  sharpe = (ROR.sub(ROR.mean(axis = 1), axis = 0)/sigma).dropna()
+
+  if window == None:
+    sigma = ROR.std()
+    sharpe = ROR.sub(ROR.mean(axis = 1), axis = 0)/sigma
+  elif isinstance(window, int) and window > 0:
+    sigma = risk(ROR, window)
+    sharpe = (ROR.sub(ROR.mean(axis = 1), axis = 0)/sigma).dropna()
+  else:
+    print("Window needs to be an integer, or None for ")
+    return None
+
   return sharpe
 
 def l2_normalization(dataframe: pd.DataFrame) -> pd.DataFrame:
