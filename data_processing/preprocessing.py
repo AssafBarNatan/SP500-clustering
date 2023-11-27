@@ -115,7 +115,7 @@ def correlation_histogram(dataframe: pd.DataFrame, bins = 'auto', clusters = Non
   df = copy.deepcopy(dataframe)
     
   if df.columns.nlevels > 1:
-    df.droplevel('Industry',axis=1)
+    df = df.droplevel('Industry',axis=1)
   
   corrs = np.tril(df.corr().values, -1)
 
