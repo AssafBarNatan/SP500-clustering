@@ -189,18 +189,18 @@ def industry_adjust(dataframe: pd.DataFrame, clusters = None) -> pd.DataFrame:
     df[industry] = df[industry].sub(df[industry].mean(axis = 1), axis = 0)
 
   return df
+def ROR(df):
 
+  df.dropna(axis = 1, inplace = True)
 
+  ROR_df = df.pct_change().dropna()
 
+  return ROR_df  
 
-
-
-
-
-
-
-
-
-
-
-
+class ClusterInput:
+    def __init__(self, df : pd.DataFrame, transform : Callable[[pd.DataFrame], pd.DataFrame] = ROR):
+        if df.index.name != 'Date' and df.index.inferred_type != 'datetime':
+           raise ValueError("The index should be `Date` with `datetime` objects as its values.")
+        self.df = df
+        self.transform = transform
+        self.df = self.transform(self.df).T if self.transform is not None else self.df.T
