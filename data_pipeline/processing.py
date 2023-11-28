@@ -6,26 +6,6 @@ import numpy as np
 from typing import Dict, Callable
 import copy
 
-def normalized(series : pd.Series, norm : Callable) -> pd.Series:
-    """
-    Parameters
-    ----------
-    - series: pandas.Series
-        The Pandas series for which the norms will be computed.
-    - norm: Callable
-        The norm function to be used.
-
-    Returns
-    -------
-        The same series with the entries normalized according the chosen norm.
-    """
-
-    series_c = copy.deepcopy(series)
-
-    norms = pd.Series(norm(num) for num in series_c)
-
-    return series_c.divide(norms)
-
 def risk(df: pd.DataFrame, window = 10) -> pd.DataFrame:
   """
   Parameters
@@ -142,3 +122,19 @@ def correlation_histogram(df: pd.DataFrame, bins = 'auto', clusters = None, ax =
              multiple="stack",
              ax = ax)
   return None
+
+def ROR(df):
+
+  df.dropna(axis = 1, inplace = True)
+
+  ROR_df = df.pct_change().dropna()
+
+  return ROR_df  
+
+class ClusterInput:
+    def __init__(self, df : pd.DataFrame, transform : Callable[[pd.DataFrame], pd.DataFrame] = ROR):
+        if df.index.name != 'Date' and df.index.inferred_type != 'datetime':
+           raise ValueError("The index should be `Date` with `datetime` objects as its values.")
+        self.df = df
+        self.transform = transform
+        self.df = self.transform(self.df).T if self.transform is not None else self.df.T
