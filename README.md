@@ -62,6 +62,19 @@ See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an e
 * Normalization:
     * ROR (rate of return):
     * $L^2$-normalization:
+* Market adjustment:
+    * Market trends can make all stocks move together, artificially
+    * increasing correlations between stocks. We subtract from each 
+    * time series the mean value of the time series.
+* Industry adjustment:
+    * To remove the effect of industry, we remove the mean ROR for
+    * each industry for each time series corresponding to a ticker in
+    * that industry. This allows us to look for outliers within each
+    * industry cluster.
+
+
+
+
 
 ### Benchmarks
 * Sector-Based Benchmarks
