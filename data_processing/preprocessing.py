@@ -145,3 +145,62 @@ def correlation_histogram(dataframe: pd.DataFrame, bins = 'auto', clusters = Non
              multiple="stack",
              ax = ax)
   return None
+
+
+def market_adjust(dataframe: pd.DataFrame) -> pd.DataFrame:
+  """
+  Parameters
+  ----------
+  - df: pandas.DataFrame
+
+  Returns
+  -------
+  - df: pandas.DataFrame of market adjusted returns
+
+  """
+  df = copy.deepcopy(dataframe)
+  
+  return df.sub(df.mean(axis = 1), axis = 0)
+
+def industry_adjust(dataframe: pd.DataFrame, clusters = None) -> pd.DataFrame:
+  """
+  Parameters
+  ----------
+  - df: pandas.DataFrame
+  - clusters: dict
+
+  Returns
+  -------
+  - df: pandas.DataFrame of industry adjusted returns
+
+  If df has two layers of column indices. The first should be the cluster labels 
+  and the second should be the tickers. If df has only one layer, the optional 
+  input of clusters should be the dictionary: {tick : cluster}.
+
+  """
+  df = copy.deepcopy(dataframe)
+
+  if df.columns.nlevels == 1:
+    df.columns = pd.MultiIndex.from_arrays((df.columns.map(clusters),
+                                                    df.columns),
+                                                    names=['Industry', 'Ticker'])
+
+  for industry in list(df.columns.levels[0]):
+    df[industry] = df[industry].sub(df[industry].mean(axis = 1), axis = 0)
+
+  return df
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
