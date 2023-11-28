@@ -73,14 +73,14 @@ def sharpe_normalize(df: pd.DataFrame, window = None) -> pd.DataFrame:
   if window == None:
     sigma = ROR.std()
     sharpe = ROR.sub(ROR.mean(axis = 1), axis = 0)/sigma
+    return sharpe
   elif isinstance(window, int) and window > 0:
     sigma = risk(ROR, window)
     sharpe = (ROR.sub(ROR.mean(axis = 1), axis = 0)/sigma).dropna()
+    return sharpe
   else:
-    print("Window needs to be an integer, or None for ")
+    print("Window needs to be an integer, or None for constant risk estimate")
     return None
-
-  return sharpe
 
 def l2_normalization(dataframe: pd.DataFrame) -> pd.DataFrame:
   """
@@ -95,12 +95,12 @@ def l2_normalization(dataframe: pd.DataFrame) -> pd.DataFrame:
   Normalized dataframe
   """
 
-  dfn = dataframe.copy()
+  dfn = copy.deepcopy(dataframe)
   for ticker in dfn:
     dfn[ticker] = dfn[ticker]/np.linalg.norm(dfn[ticker])
   return dfn
 
-def correlation_histogram(df: pd.DataFrame, bins = 'auto', clusters = None, ax = None) -> None:
+def correlation_histogram(dataframe: pd.DataFrame, bins = 'auto', clusters = None, ax = None) -> None:
   """
   Parameters
   ----------
@@ -112,7 +112,10 @@ def correlation_histogram(df: pd.DataFrame, bins = 'auto', clusters = None, ax =
 
   Prints out Correlation histogram without autocorrelations or repetitions
   """
-
+  df = copy.deepcopy(dataframe)
+    
+  if df.columns.nlevels > 1:
+    df = df.droplevel('Industry',axis=1)
   
   corrs = np.tril(df.corr().values, -1)
 
@@ -144,6 +147,48 @@ def correlation_histogram(df: pd.DataFrame, bins = 'auto', clusters = None, ax =
   return None
 
 
+def market_adjust(dataframe: pd.DataFrame) -> pd.DataFrame:
+  """
+  Parameters
+  ----------
+  - df: pandas.DataFrame
+
+  Returns
+  -------
+  - df: pandas.DataFrame of market adjusted returns
+
+  """
+  df = copy.deepcopy(dataframe)
+  
+  return df.sub(df.mean(axis = 1), axis = 0)
+
+def industry_adjust(dataframe: pd.DataFrame, clusters = None) -> pd.DataFrame:
+  """
+  Parameters
+  ----------
+  - df: pandas.DataFrame
+  - clusters: dict
+
+  Returns
+  -------
+  - df: pandas.DataFrame of industry adjusted returns
+
+  If df has two layers of column indices. The first should be the cluster labels 
+  and the second should be the tickers. If df has only one layer, the optional 
+  input of clusters should be the dictionary: {tick : cluster}.
+
+  """
+  df = copy.deepcopy(dataframe)
+
+  if df.columns.nlevels == 1:
+    df.columns = pd.MultiIndex.from_arrays((df.columns.map(clusters),
+                                                    df.columns),
+                                                    names=['Industry', 'Ticker'])
+
+  for industry in list(df.columns.levels[0]):
+    df[industry] = df[industry].sub(df[industry].mean(axis = 1), axis = 0)
+
+  return df
 def ROR(df):
 
   df.dropna(axis = 1, inplace = True)
