@@ -189,13 +189,19 @@ def industry_adjust(dataframe: pd.DataFrame, clusters = None) -> pd.DataFrame:
     df[industry] = df[industry].sub(df[industry].mean(axis = 1), axis = 0)
 
   return df
-def ROR(df):
+
+def ROR(df, period = 1):  
+  """
+  Returns the percent change between time intervals of length 'period'. Period 
+  is set to 1 by default.
+  """
 
   df.dropna(axis = 1, inplace = True)
 
-  ROR_df = df.pct_change().dropna()
+  ROR_df = df[::period].pct_change().dropna()
 
   return ROR_df  
+
 
 class ClusterInput:
     def __init__(self, df : pd.DataFrame, transform : Callable[[pd.DataFrame], pd.DataFrame] = ROR):
