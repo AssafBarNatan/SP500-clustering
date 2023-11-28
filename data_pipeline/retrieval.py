@@ -120,12 +120,12 @@ def load(load_path : str) -> pd.DataFrame:
     
     Returns
     -------
-        A data frame of the closing prices extracted from the pickle file.
+        A data frame of the data extracted from the pickle file.
         If the file does not exist, an error will be raised instead.
     """
     try:
-        adj_closing_prices = pd.read_pickle(load_path)
+        data = pd.read_pickle(load_path)
     except FileNotFoundError:
         logging.exception("The specified file does not exist. Please double check the loading path.")
     
-    return adj_closing_prices
+    return data
