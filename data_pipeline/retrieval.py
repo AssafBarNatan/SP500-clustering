@@ -23,12 +23,12 @@ class DataBank:
             table = DataBank.get_table(self)
         return list(table["Symbol"])
 
-    def get_sectors_tickers(self, table = None) -> list[str]:
+    def get_sectors_list(self, table = None) -> list[str]:
         if table is None:
             table = DataBank.get_table(self)
         return list(table["GICS Sector"].unique())
 
-    def get_subind_tickers(self, table = None) -> list[str]:
+    def get_subind_list(self, table = None) -> list[str]:
         if table is None:
             table = DataBank.get_table(self)
         return list(list(table["GICS Sub-Industry"].unique()))
@@ -65,6 +65,32 @@ class DataBank:
             for ticker in tickers
             }
 
+    def sector_to_ticker_map(self, table = None):
+        if table is None:
+            table = DataBank.get_table(self)
+        
+        tickers = DataBank.get_tickers(self, table)
+
+        sectors = DataBank.get_sectors_list(self, table)
+
+        return {
+            sector : [ticker for ticker in tickers if DataBank.get_sector(self, ticker, table) == sector]
+            for sector in sectors
+        }
+    
+    def subind_to_ticker_map(self, table = None):
+        if table is None:
+            table = DataBank.get_table(self)
+        
+        tickers = DataBank.get_tickers(self, table)
+
+        subinds = DataBank.get_sectors_list(self, table)
+
+        return {
+            subind : [ticker for ticker in tickers if DataBank.get_subind(self, ticker, table) == subind]
+            for subind in subinds
+        }
+
 def download_historical_data(tickers : str, start : str, end = TODAY, save_data : bool = True) -> pd.DataFrame:
     start = datetime.fromisoformat(start)
     
@@ -79,8 +105,9 @@ def download_historical_data(tickers : str, start : str, end = TODAY, save_data 
     historical_data.dropna(axis=1, inplace=True)
     
     if save_data:
-        today_str = TODAY.strftime('%Y-%m-%d')
-        output_path = f"./dataframes/historical_data/SP500_{today_str}.pkl"
+        start = start.strftime('%Y-%m-%d')
+        end = end if type(end) == str else end.strftime('%Y-%m-%d')
+        output_path = f"./dataframes/historical_data/SP500_{start}_{end}.pkl"
         historical_data.to_pickle(output_path)
     
     return historical_data
@@ -105,8 +132,9 @@ def download_adj_close(tickers : str, start : str, end = TODAY, save_data : bool
     adj_closing_prices = download_historical_data(tickers, start, end, save_data=False)['Adj Close']
 
     if save_data:
-        today_str = TODAY.strftime('%Y-%m-%d')
-        output_path = f"./dataframes/closing_prices/SP500_{today_str}.pkl"
+        start = start
+        end = end if type(end) == str else end.strftime('%Y-%m-%d')
+        output_path = f"./dataframes/closing_prices/SP500_{start}_{end}.pkl"
         adj_closing_prices.to_pickle(output_path)
     
     return adj_closing_prices
