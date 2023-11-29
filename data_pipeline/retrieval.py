@@ -105,8 +105,9 @@ def download_historical_data(tickers : str, start : str, end = TODAY, save_data 
     historical_data.dropna(axis=1, inplace=True)
     
     if save_data:
-        today_str = TODAY.strftime('%Y-%m-%d')
-        output_path = f"./dataframes/historical_data/SP500_{today_str}.pkl"
+        start = start.strftime('%Y-%m-%d')
+        end = end if type(end) == str else end.strftime('%Y-%m-%d')
+        output_path = f"./dataframes/historical_data/SP500_{start}_{end}.pkl"
         historical_data.to_pickle(output_path)
     
     return historical_data
@@ -131,8 +132,9 @@ def download_adj_close(tickers : str, start : str, end = TODAY, save_data : bool
     adj_closing_prices = download_historical_data(tickers, start, end, save_data=False)['Adj Close']
 
     if save_data:
-        today_str = TODAY.strftime('%Y-%m-%d')
-        output_path = f"./dataframes/closing_prices/SP500_{today_str}.pkl"
+        start = start
+        end = end if type(end) == str else end.strftime('%Y-%m-%d')
+        output_path = f"./dataframes/closing_prices/SP500_{start}_{end}.pkl"
         adj_closing_prices.to_pickle(output_path)
     
     return adj_closing_prices
