@@ -162,32 +162,37 @@ def market_adjust(dataframe: pd.DataFrame) -> pd.DataFrame:
   
   return df.sub(df.mean(axis = 1), axis = 0)
 
-def industry_adjust(dataframe: pd.DataFrame, clusters = None) -> pd.DataFrame:
+def industry_adjust(dataframe: pd.DataFrame, clusters) -> pd.DataFrame:
   """
   Parameters
   ----------
   - df: pandas.DataFrame
-  - clusters: dict
+  - clusters: list
 
   Returns
   -------
   - df: pandas.DataFrame of industry adjusted returns
 
   If df has two layers of column indices. The first should be the cluster labels 
-  and the second should be the tickers. If df has only one layer, the optional 
-  input of clusters should be the dictionary: {tick : cluster}.
+  and the second should be the tickers. Alternatively, clusters is a list 
+  of labels for the columns of dataframe.
 
   """
   df = copy.deepcopy(dataframe)
 
+
+  clusters_dict = {tick : label for (tick, label) in zip(df.columns, clusters)}
+
   if df.columns.nlevels == 1:
-    df.columns = pd.MultiIndex.from_arrays((df.columns.map(clusters),
+    df.columns = pd.MultiIndex.from_arrays((df.columns.map(clusters_dict),
                                                     df.columns),
                                                     names=['Industry', 'Ticker'])
 
-  for industry in list(df.columns.levels[0]):
+  for industry in set(clusters):
     df[industry] = df[industry].sub(df[industry].mean(axis = 1), axis = 0)
-
+  
+  df.columns = df.columns.droplevel()
+  
   return df
 
 def ROR(df, period = 1):  
