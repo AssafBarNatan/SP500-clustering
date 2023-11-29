@@ -135,6 +135,7 @@ def download_adj_close(tickers : str, start : str, end = TODAY, save_data : bool
 
     try:
         adj_closing_prices = pd.read_pickle(data_path)
+        print("Loaded from saved data!")
     except Exception as e:
         print("Data for this time interval not found. Loading data...")
         adj_closing_prices = download_historical_data(tickers, start, end, save_data=False)['Adj Close']
