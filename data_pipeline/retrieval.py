@@ -119,20 +119,27 @@ def download_historical_data(tickers : list[str], start : str, end = TODAY, save
     
     end = datetime.fromisoformat(end) if not end else end
 
+    start = start.strftime('%Y-%m-%d')
+    end = end if type(end) == str else end.strftime('%Y-%m-%d')
+    data_path = f"./data/dataframes/historical_data/SP500_{start}_{end}.pkl"
+
+    try:
+        historical_data = pd.read_pickle(data_path)
+        print("Loaded data from saved file")
+        return historical_data
+    except Exception as e:
+        print("Failed to load saved data. Loading data...")
+
     historical_data = yf.download(
         tickers,
         start,
         end
     )
-
     historical_data.dropna(axis=1, inplace=True)
-    
+
     if save_data:
-        start = start.strftime('%Y-%m-%d')
-        end = end if type(end) == str else end.strftime('%Y-%m-%d')
-        output_path = f"./data/dataframes/historical_data/SP500_{start}_{end}.pkl"
-        historical_data.to_pickle(output_path)
-    
+        historical_data.to_pickle(data_path)
+        
     return historical_data
 
 def download_adj_close(tickers : list[str], start : str, end = TODAY, save_data : bool = True) -> pd.DataFrame:
@@ -152,13 +159,20 @@ def download_adj_close(tickers : list[str], start : str, end = TODAY, save_data 
     -------
         A dataframe containing the adjusted closing prices.
     """
-    adj_closing_prices = download_historical_data(tickers, start, end, save_data=False)['Adj Close']
+    start = start
+    end = end if type(end) == str else end.strftime('%Y-%m-%d')
+    data_path = f"./data/dataframes/closing_prices/SP500_{start}_{end}.pkl"
+
+    try:
+        adj_closing_prices = pd.read_pickle(data_path)
+        print("Loaded from saved data!")
+        return adj_closing_prices
+    except Exception as e:
+        print("Data for this time interval not found. Loading data...")
+        adj_closing_prices = download_historical_data(tickers, start, end, save_data=False)['Adj Close']
 
     if save_data:
-        start = start
-        end = end if type(end) == str else end.strftime('%Y-%m-%d')
-        output_path = f"./data/dataframes/closing_prices/SP500_{start}_{end}.pkl"
-        adj_closing_prices.to_pickle(output_path)
+        adj_closing_prices.to_pickle(data_path)
     
     return adj_closing_prices
 
