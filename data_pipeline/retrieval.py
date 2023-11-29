@@ -20,74 +20,74 @@ class DataBank:
 
     def get_tickers(self, table = None) -> list[str]:
         if table is None:
-            table = DataBank.get_table(self)
+            table = self.get_table()
         return list(table["Symbol"])
 
     def get_sectors_list(self, table = None) -> list[str]:
         if table is None:
-            table = DataBank.get_table(self)
+            table = self.get_table()
         return list(table["GICS Sector"].unique())
 
     def get_subind_list(self, table = None) -> list[str]:
         if table is None:
-            table = DataBank.get_table(self)
+            table = self.get_table()
         return list(list(table["GICS Sub-Industry"].unique()))
 
     def get_sector(self, ticker : str, table = None):
         if table is None:
-            table = DataBank.get_table(self)        
+            table = self.get_table()        
         return table[table.Symbol == ticker]["GICS Sector"].values[0]
 
     def get_subind(self, ticker : str, table = None):
         if table is None:
-            table = DataBank.get_table(self)        
+            table = self.get_table()        
         return table[table.Symbol == ticker]["GICS Sub-Industry"].values[0]
 
     def ticker_to_sector_map(self, table = None):
         if table is None:
-            table = DataBank.get_table(self)
+            table = self.get_table()
         
-        tickers = DataBank.get_tickers(self, table = None)
+        tickers = self.get_tickers(table)
 
         return {
-            ticker : DataBank.get_sector(self, ticker, table)
+            ticker : self.get_sector(ticker, table)
             for ticker in tickers
             }
     
     def ticker_to_subind_map(self, table = None):
         if table is None:
-            table = DataBank.get_table(self)
+            table = self.get_table()
         
         tickers = DataBank.get_tickers(self, table)
 
         return {
-            ticker : DataBank.get_subind(self, ticker, table)
+            ticker : self.get_subind(ticker, table)
             for ticker in tickers
             }
 
     def sector_to_ticker_map(self, table = None):
         if table is None:
-            table = DataBank.get_table(self)
+            table = self.get_table()
         
         tickers = DataBank.get_tickers(self, table)
 
         sectors = DataBank.get_sectors_list(self, table)
 
         return {
-            sector : [ticker for ticker in tickers if DataBank.get_sector(self, ticker, table) == sector]
+            sector : [ticker for ticker in tickers if self.get_sector(ticker, table) == sector]
             for sector in sectors
         }
     
     def subind_to_ticker_map(self, table = None):
         if table is None:
-            table = DataBank.get_table(self)
+            table = self.get_table()
         
         tickers = DataBank.get_tickers(self, table)
 
         subinds = DataBank.get_sectors_list(self, table)
 
         return {
-            subind : [ticker for ticker in tickers if DataBank.get_subind(self, ticker, table) == subind]
+            subind : [ticker for ticker in tickers if self.get_subind(ticker, table) == subind]
             for subind in subinds
         }
 
