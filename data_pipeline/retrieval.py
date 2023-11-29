@@ -107,7 +107,7 @@ def download_historical_data(tickers : str, start : str, end = TODAY, save_data 
     if save_data:
         start = start.strftime('%Y-%m-%d')
         end = end if type(end) == str else end.strftime('%Y-%m-%d')
-        output_path = f"./dataframes/historical_data/SP500_{start}_{end}.pkl"
+        output_path = f"./data/dataframes/historical_data/SP500_{start}_{end}.pkl"
         historical_data.to_pickle(output_path)
     
     return historical_data
@@ -131,7 +131,7 @@ def download_adj_close(tickers : str, start : str, end = TODAY, save_data : bool
     """
     start = start
     end = end if type(end) == str else end.strftime('%Y-%m-%d')
-    data_path = f"./dataframes/closing_prices/SP500_{start}_{end}.pkl"
+    data_path = f"./data/dataframes/closing_prices/SP500_{start}_{end}.pkl"
 
     try:
         adj_closing_prices = pd.read_pickle(data_path)
