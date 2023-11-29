@@ -129,13 +129,18 @@ def download_adj_close(tickers : str, start : str, end = TODAY, save_data : bool
     -------
         A dataframe containing the adjusted closing prices.
     """
-    adj_closing_prices = download_historical_data(tickers, start, end, save_data=False)['Adj Close']
+    start = start
+    end = end if type(end) == str else end.strftime('%Y-%m-%d')
+    data_path = f"./dataframes/closing_prices/SP500_{start}_{end}.pkl"
+
+    try:
+        adj_closing_prices = pd.read_pickle(data_path)
+    except Exception as e:
+        print("Data for this time interval not found. Loading data...")
+        adj_closing_prices = download_historical_data(tickers, start, end, save_data=False)['Adj Close']
 
     if save_data:
-        start = start
-        end = end if type(end) == str else end.strftime('%Y-%m-%d')
-        output_path = f"./dataframes/closing_prices/SP500_{start}_{end}.pkl"
-        adj_closing_prices.to_pickle(output_path)
+        adj_closing_prices.to_pickle(data_path)
     
     return adj_closing_prices
 
