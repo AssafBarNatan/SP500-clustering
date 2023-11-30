@@ -82,6 +82,9 @@ See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an e
 
 ### Model Evaluation
 
+* (Add something)
+
+  
 This is summarized in the following diagram:
 
 ![Summary](/Images/pipeline.png "Summary").
@@ -89,7 +92,8 @@ This is summarized in the following diagram:
 ## Future Iterations & Extensions
 
 The clusters we obtain can be used as the starting point of 
-a trading strategy similar to 'pairs trading' (see e.g. (add links)).
+a trading strategy similar to 'pairs trading' 
+(see [this paper](http://stat.wharton.upenn.edu/~steele/Courses/434/434Context/PairsTrading/PairsTradingQFin05.pdf) for more details).
 
 In pairs trading, the idea is to find pairs of tickers that behave similarly.
 When the prices of the tickers behave in opposite ways - i.e. one of the tickers goes up in value,
