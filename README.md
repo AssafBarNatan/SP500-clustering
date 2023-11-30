@@ -73,9 +73,6 @@ See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an e
     * industry cluster.
 
 
-
-
-
 ### Benchmarks
 * Sector-Based Benchmarks
 
@@ -85,4 +82,20 @@ See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an e
 
 ### Model Evaluation
 
+This is summarized in the following diagram:
+
+![Summary](/Images/pipeline.png "Summary").
+
 ## Future Iterations & Extensions
+
+The clusters we obtain can be used as the starting point of 
+a trading strategy similar to 'pairs trading' (see e.g. (add links)).
+
+In pairs trading, the idea is to find pairs of tickers that behave similarly.
+When the prices of the tickers behave in opposite ways - i.e. one of the tickers goes up in value,
+while the other goes down - we invest with the expectation that the trend will reverse itself.
+
+Our trading strategy would generalize this to clusters with more than 2 elements.
+
+
+
