@@ -1,30 +1,33 @@
 """Utilities to process the loaded data."""
 
 import pandas as pd
-import seaborn as sns
 import numpy as np
-from typing import Dict, Callable
 import copy
+from inspect import signature
+from functools import partial
+from functools import reduce
+from typing import Dict, Callable
+from data_pipeline.retrieval import DataBank
 
-def normalized(series : pd.Series, norm : Callable) -> pd.Series:
+def normalize(df : pd.Series, norm : Callable = np.linalg.norm) -> pd.Series:
     """
     Parameters
     ----------
-    - series: pandas.Series
-        The Pandas series for which the norms will be computed.
+    - df: pandas.DataFrame
+      The Pandas dataframe to be normalized.
     - norm: Callable
-        The norm function to be used.
+        The norm function to be used. (The l2-norm from numpy.linalg, by default.)
 
     Returns
     -------
-        The same series with the entries normalized according the chosen norm.
+    - df_norm: pandas.DataFrame
+        The same dataframe with all its values normalized.
     """
+    df_norm = df.dropna(axis = 1, inplace=True)
 
-    series_c = copy.deepcopy(series)
+    df_norm = df.apply(lambda x : x / norm(x), result_type='broadcast')
 
-    norms = pd.Series(norm(num) for num in series_c)
-
-    return series_c.divide(norms)
+    return df_norm
 
 def risk(df: pd.DataFrame, window = 10) -> pd.DataFrame:
   """
@@ -82,72 +85,7 @@ def sharpe_normalize(df: pd.DataFrame, window = None) -> pd.DataFrame:
     print("Window needs to be an integer, or None for constant risk estimate")
     return None
 
-def l2_normalization(dataframe: pd.DataFrame) -> pd.DataFrame:
-  """
-  Parameters
-  ----------
-  - df: pandas.DataFrame
-      The Pandas dataframe which should be normalized by the L^2 
-      norm
-
-  Returns
-  -------
-  Normalized dataframe
-  """
-
-  dfn = copy.deepcopy(dataframe)
-  for ticker in dfn:
-    dfn[ticker] = dfn[ticker]/np.linalg.norm(dfn[ticker])
-  return dfn
-
-def correlation_histogram(dataframe: pd.DataFrame, bins = 'auto', clusters = None, ax = None) -> None:
-  """
-  Parameters
-  ----------
-  - df: pandas.DataFrame
-
-  Returns
-  -------
-  None
-
-  Prints out Correlation histogram without autocorrelations or repetitions
-  """
-  df = copy.deepcopy(dataframe)
-    
-  if df.columns.nlevels > 1:
-    df = df.droplevel('Industry',axis=1)
-  
-  corrs = np.tril(df.corr().values, -1)
-
-  if clusters == None:
-    corrs = corrs[corrs.nonzero()]
-    sns.histplot(corrs, bins = bins)
-
-  else:
-    # this code is a bit of spaghetti, and I apologize for it
-    pairs = {}
-    for i in range(df.shape[1]):
-        for j in range(i):
-            col1, col2 = df.columns[i], df.columns[j]
-            pairs[col1 + '+' + col2] = [corrs[i][j], 1*(clusters[col1] == clusters[col2])]
-
-    pairs_df = pd.DataFrame.from_dict(pairs, 
-                                      orient='index', 
-                                      columns = ["correlation", "Together"])
-
-    pairs_df["Together"] = pairs_df["Together"].replace({1 : "Together", 0 : "Not Together"})
-
-    sns.histplot(data = pairs_df,
-             bins = bins,
-             x="correlation", 
-             hue="Together", 
-             hue_order = ["Not Together", "Together"],
-             multiple="stack",
-             ax = ax)
-  return None
-
-
-def market_adjust(dataframe: pd.DataFrame) -> pd.DataFrame:
+def market_adjust(df: pd.DataFrame) -> pd.DataFrame:
   """
   Parameters
   ----------
@@ -158,11 +96,11 @@ def market_adjust(dataframe: pd.DataFrame) -> pd.DataFrame:
   - df: pandas.DataFrame of market adjusted returns
 
   """
-  df = copy.deepcopy(dataframe)
+  df_c = copy.deepcopy(df)
   
-  return df.sub(df.mean(axis = 1), axis = 0)
+  return df_c.sub(df.mean(axis = 1), axis = 0)
 
-def industry_adjust(dataframe: pd.DataFrame, clusters) -> pd.DataFrame:
+def industry_adjust(df: pd.DataFrame, clusters = DataBank().ticker_to_sector_map()) -> pd.DataFrame:
   """
   Parameters
   ----------
@@ -178,24 +116,23 @@ def industry_adjust(dataframe: pd.DataFrame, clusters) -> pd.DataFrame:
   of labels for the columns of dataframe.
 
   """
-  df = copy.deepcopy(dataframe)
+  df_c = copy.deepcopy(df)
 
+  clusters_dict = {tick : label for (tick, label) in zip(df_c.columns, clusters)}
 
-  clusters_dict = {tick : label for (tick, label) in zip(df.columns, clusters)}
-
-  if df.columns.nlevels == 1:
-    df.columns = pd.MultiIndex.from_arrays((df.columns.map(clusters_dict),
-                                                    df.columns),
+  if df_c.columns.nlevels == 1:
+    df_c.columns = pd.MultiIndex.from_arrays((df_c.columns.map(clusters_dict),
+                                                    df_c.columns),
                                                     names=['Industry', 'Ticker'])
 
   for industry in set(clusters):
-    df[industry] = df[industry].sub(df[industry].mean(axis = 1), axis = 0)
+    df_c[industry] = df_c[industry].sub(df_c[industry].mean(axis = 1), axis = 0)
   
-  df.columns = df.columns.droplevel()
+  df_c.columns = df_c.columns.droplevel()
   
-  return df
+  return df_c
 
-def ROR(df, period = 1):  
+def ROR(df):  
   """
   Returns the percent change between time intervals of length 'period'. Period 
   is set to 1 by default.
@@ -203,15 +140,84 @@ def ROR(df, period = 1):
 
   df.dropna(axis = 1, inplace = True)
 
-  ROR_df = df[::period].pct_change().dropna()
+  ROR_df = df.pct_change().dropna()
 
   return ROR_df  
 
+def default_transform_sequence(
+        default_funcs = [industry_adjust, market_adjust, ROR, normalize], 
+        default_additional_args = [{}, {}, {}, {}]
+        ) -> dict:
+    """
+    This function constructs the sequence of functions with their additional
+    arguments (if any) to be used as the sequence of default transformations
+    to be applied to a dataframe before it is fed to the `ClusterInput' object.
+    
+    The expected structure of the function is for it to have `df` as a primary
+    argument, and possibly other additional arguments.
+    
+    Parameters
+    ----------
+    - default_funcs : List[Callable]
+        The list of functions to be applied, in order. For e.g., if 
+        default_funcs = [f1, f2, f3], the functions will be applied
+        to the variable `var` as follows: f3(f2(f1(var))).
+        (Ignoring additional arguments in this example.)
+
+    - default_additional_args : List[Dict[str, Any]]
+        The list of additional arguments as dictionaries. For e.g. if the functions
+        are the following
+        f1 = lambda x, y, z : x + y + z;
+        f2 = lambda x, y : x - 2 * y;
+        f3 = lambda x : x ** 2;
+        then a possible default_additional_args would be:
+        default_additional_args = [{'y' : 2, 'z' : 3}, {'y' : 1}, {}].
+        
+    Returns
+    -------
+    - transformation_sequence : List[Tuple[Callable, Dict[str, Any]]]
+    A list of transformations to be applied in order, where any additional arguments
+    besides the `df` argument are the default_additional_args arguments.
+    """
+    
+    if any(list(signature(f).parameters.keys())[0] != 'df' for f in default_funcs):
+       raise NameError("The first argument of every single default function should be `df`.")
+    
+    return [partial(f, **add_args) for (f, add_args) in zip(default_funcs, default_additional_args)]
+
+def default_transform(df, transformation_sequence = default_transform_sequence()):
+   """
+   This represents the default transformation to be applied to our dataframe of
+   adjusted closing prices before it is converted into a `ClusterInput` object.
+   
+   Parameter
+   ---------
+   - df : pd.DataFrame
+      The dataframe of adjusted closing prices to be transformed.
+   - transformation_sequence : List[Tuple(Callable, Dict[str, Any])]
+        The transformation sequence to be applied.
+
+   Returns
+   -------
+   - df_tr : pd.DataFrame
+      The transformed dataframe to be converted into a `ClusterInput` object.
+   """
+
+   composite_transformation = lambda x : reduce(lambda res, f: f(res), transformation_sequence, x)
+
+   df_tr = composite_transformation(copy.deepcopy(df))
+
+   return df_tr
 
 class ClusterInput:
-    def __init__(self, df : pd.DataFrame, transform : Callable[[pd.DataFrame], pd.DataFrame] = ROR):
+    def __init__(self, df : pd.DataFrame, transform : Callable[[pd.DataFrame], pd.DataFrame] = default_transform(), API = 'sklearn'):
         if df.index.name != 'Date' and df.index.inferred_type != 'datetime':
            raise ValueError("The index should be `Date` with `datetime` objects as its values.")
+        
         self.df = df
         self.transform = transform
-        self.df = self.transform(self.df).T if self.transform is not None else self.df.T
+        self.API = API
+        
+        self.transform = self.transform if self.transform is not None else lambda x : x
+
+        self.df = self.transform(self.df) if API is None else self.transform(self.df).T
