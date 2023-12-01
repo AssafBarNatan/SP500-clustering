@@ -115,6 +115,9 @@ class DataBank:
                     sub_to_tick_map[subind].append(ticker)
 
 def download_historical_data(tickers : list[str], start : str, end = TODAY, save_data : bool = True) -> pd.DataFrame:
+    if tickers is None:
+        tickers = DataBank().get_tickers()
+
     start = datetime.fromisoformat(start)
     
     end = datetime.fromisoformat(end) if not end else end
@@ -159,6 +162,9 @@ def download_adj_close(tickers : list[str], start : str, end = TODAY, save_data 
     -------
         A dataframe containing the adjusted closing prices.
     """
+    if tickers is None:
+        tickers = DataBank().get_tickers()
+
     start = start
     end = end if type(end) == str else end.strftime('%Y-%m-%d')
     data_path = f"./data/dataframes/closing_prices/SP500_{start}_{end}.pkl"
