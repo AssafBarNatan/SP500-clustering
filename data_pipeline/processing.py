@@ -185,7 +185,7 @@ def default_transform_sequence(
     
     return [partial(f, **add_args) for (f, add_args) in zip(default_funcs, default_additional_args)]
 
-def default_transform(df, transformation_sequence = default_transform_sequence()):
+def default_transform(transformation_sequence = default_transform_sequence()):
    """
    This represents the default transformation to be applied to our dataframe of
    adjusted closing prices before it is converted into a `ClusterInput` object.
@@ -203,11 +203,9 @@ def default_transform(df, transformation_sequence = default_transform_sequence()
       The transformed dataframe to be converted into a `ClusterInput` object.
    """
 
-   composite_transformation = lambda x : reduce(lambda res, f: f(res), transformation_sequence, x)
+   composite_transformation = lambda df : reduce(lambda res, f: f(res), transformation_sequence, df)
 
-   df_tr = composite_transformation(copy.deepcopy(df))
-
-   return df_tr
+   return composite_transformation
 
 class ClusterInput:
     def __init__(self, df : pd.DataFrame, transform : Callable[[pd.DataFrame], pd.DataFrame] = default_transform(), API = 'sklearn'):
