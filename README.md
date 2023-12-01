@@ -82,10 +82,11 @@ See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an e
 
 ### Model Evaluation
 
-* Calinski-Harabasz Index:
+* Calinski-Harabasz Index: To evaluate and compare the various clusterings we obtained, we used the Calinski-Harabasz Index.
+* See [this website](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.calinski_harabasz_score.html) for more details.
 
   
-This is summarized in the following diagram:
+### Summary
 
 ![Summary](/Images/pipeline.png "Summary").
 
