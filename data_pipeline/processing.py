@@ -145,8 +145,8 @@ def ROR(df):
   return ROR_df  
 
 def default_transform_sequence(
-        default_funcs = [industry_adjust, market_adjust, ROR, normalize], 
-        default_additional_args = [{}, {}, {}, {}]
+        default_funcs = [ROR, market_adjust, industry_adjust], 
+        default_additional_args = [{}, {}, {}]
         ) -> dict:
     """
     This function constructs the sequence of functions with their additional
@@ -208,14 +208,22 @@ def default_transform(transformation_sequence = default_transform_sequence()):
    return composite_transformation
 
 class ClusterInput:
-    def __init__(self, df : pd.DataFrame, transform : Callable[[pd.DataFrame], pd.DataFrame] = default_transform(), API = 'sklearn'):
+    def __init__(self, df : pd.DataFrame, 
+                 transform : Callable[[pd.DataFrame], pd.DataFrame] = default_transform(),
+                 normalize = False, 
+                 API = 'sklearn'
+                 ):
         if df.index.name != 'Date' and df.index.inferred_type != 'datetime':
            raise ValueError("The index should be `Date` with `datetime` objects as its values.")
         
         self.df = df
         self.transform = transform
+        self.normalize = normalize
         self.API = API
         
-        self.transform = self.transform if self.transform is not None else lambda x : x
-
-        self.df = self.transform(self.df) if API is None else self.transform(self.df).T
+        if self.transform is None:
+           self.transform = lambda df : df
+        elif normalize is True:
+           self.transform = lambda df : normalize(self.transform(df))
+        else:
+           self.df = self.transform(self.df) if API is None else self.transform(self.df).T

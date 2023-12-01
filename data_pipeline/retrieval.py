@@ -2,8 +2,9 @@
 
 import pandas as pd
 import yfinance as yf
-import logging
-from datetime import datetime
+from logging import log, exception
+from datetime import datetime, timedelta
+from typing import List, Union, Optional
 
 WIKI_TABLE_URL = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
 
@@ -114,29 +115,31 @@ class DataBank:
                 if tick_to_sub_map[ticker] == subind:
                     sub_to_tick_map[subind].append(ticker)
 
-def download_historical_data(tickers : list[str], start : str, end = TODAY, save_data : bool = True) -> pd.DataFrame:
-    if tickers is None:
-        tickers = DataBank().get_tickers()
+def download_historical_data(tickers : List[str] = DataBank().get_tickers(), 
+                             start : Union[str, datetime] = TODAY - timedelta(weeks=52 * 2), 
+                             end : Union[str, datetime] = TODAY, 
+                             interval : Optional[str] = None,
+                             save_data : bool = True) -> pd.DataFrame:
 
-    start = datetime.fromisoformat(start)
+    if not isinstance(start, Union[str, datetime]) or not isinstance(end, Union[str, datetime]):
+        raise TypeError("The `start` and `end` arguments must be strings or datetime objects.")
     
-    end = datetime.fromisoformat(end) if not end else end
+    start = datetime.fromisoformat(start) if isinstance(start, str) else start
+    
+    end = datetime.fromisoformat(end) if isinstance(end, str) else end
 
-    start = start.strftime('%Y-%m-%d')
-    end = end if type(end) == str else end.strftime('%Y-%m-%d')
-    data_path = f"./data/dataframes/historical_data/SP500_{start}_{end}.pkl"
+    data_path = f"./data/dataframes/historical_data/SP500_{start.strftime('%Y-%m-%d')}_{end.strftime('%Y-%m-%d')}.pkl"
 
     try:
         historical_data = pd.read_pickle(data_path)
-        print("Loaded data from saved file")
+        log("Loaded data from saved file.")
         return historical_data
+    
     except Exception as e:
-        print("Failed to load saved data. Loading data...")
+        log(f"{e}: Failed to load saved data. Loading data...")
 
     historical_data = yf.download(
-        tickers,
-        start,
-        end
+        tickers=tickers, start=start, end=end, interval=interval
     )
     historical_data.dropna(axis=1, inplace=True)
 
@@ -145,7 +148,11 @@ def download_historical_data(tickers : list[str], start : str, end = TODAY, save
         
     return historical_data
 
-def download_adj_close(tickers : list[str], start : str, end = TODAY, save_data : bool = True) -> pd.DataFrame:
+def download_adj_close(tickers : List[str] = DataBank().get_tickers(),
+                       start : Union[str, datetime] = TODAY - timedelta(weeks=52 * 2),
+                       end : Union[str, datetime] = TODAY, 
+                       interval : Optional[str] = None,
+                       save_data : bool = True) -> pd.DataFrame:
     """
     Parameter
     ---------
@@ -197,6 +204,6 @@ def load(load_path : str) -> pd.DataFrame:
     try:
         data = pd.read_pickle(load_path)
     except FileNotFoundError:
-        logging.exception("The specified file does not exist. Please double check the loading path.")
+        exception("The specified file does not exist. Please double check the loading path.")
     
     return data
