@@ -127,8 +127,9 @@ def download_historical_data(tickers : List[str] = DataBank().get_tickers(),
     start = datetime.fromisoformat(start) if isinstance(start, str) else start
     
     end = datetime.fromisoformat(end) if isinstance(end, str) else end
-
-    data_path = f"./data/dataframes/historical_data/SP500_{start.strftime('%Y-%m-%d')}_{end.strftime('%Y-%m-%d')}.pkl"
+    
+    data_path = f"./data/dataframes/historical_data/SP500_{start.strftime('%Y-%m-%d')}_{end.strftime('%Y-%m-%d')}.pkl" if interval is None \
+                else f"./data/dataframes/historical_data/SP500_{start.strftime('%Y-%m-%d')}_{end.strftime('%Y-%m-%d')}_{interval}.pkl"
 
     try:
         historical_data = pd.read_pickle(data_path)
@@ -140,8 +141,7 @@ def download_historical_data(tickers : List[str] = DataBank().get_tickers(),
 
     historical_data = yf.download(
         tickers=tickers, start=start, end=end, interval=interval
-    )
-    historical_data.dropna(axis=1, inplace=True)
+    ).dropna(axis=1, inplace=True)
 
     if save_data:
         historical_data.to_pickle(data_path)
@@ -169,20 +169,26 @@ def download_adj_close(tickers : List[str] = DataBank().get_tickers(),
     -------
         A dataframe containing the adjusted closing prices.
     """
-    if tickers is None:
-        tickers = DataBank().get_tickers()
+    if not isinstance(start, Union[str, datetime]) or not isinstance(end, Union[str, datetime]):
+        raise TypeError("The `start` and `end` arguments must be strings or datetime objects.")
+    
+    start = datetime.fromisoformat(start) if isinstance(start, str) else start
+    
+    end = datetime.fromisoformat(end) if isinstance(end, str) else end
 
-    start = start
-    end = end if type(end) == str else end.strftime('%Y-%m-%d')
-    data_path = f"./data/dataframes/closing_prices/SP500_{start}_{end}.pkl"
+    data_path = f"./data/dataframes/adj_closing_prices/SP500_{start.strftime('%Y-%m-%d')}_{end.strftime('%Y-%m-%d')}.pkl" if interval is None \
+                else f"./data/dataframes/adj_closing_prices/SP500_{start.strftime('%Y-%m-%d')}_{end.strftime('%Y-%m-%d')}_{interval}.pkl"
 
     try:
         adj_closing_prices = pd.read_pickle(data_path)
-        print("Loaded from saved data!")
+        log("Loaded from saved data!")
         return adj_closing_prices
     except Exception as e:
-        print("Data for this time interval not found. Loading data...")
-        adj_closing_prices = download_historical_data(tickers, start, end, save_data=False)['Adj Close']
+        print(f"{e}: Data for this time interval not found. Loading data...")
+    
+    adj_closing_prices = download_historical_data(
+            tickers=tickers, start=start, end=end, interval=interval, save_data=False
+            )['Adj Close'].dropna(axis=1, inplace=True)
 
     if save_data:
         adj_closing_prices.to_pickle(data_path)
