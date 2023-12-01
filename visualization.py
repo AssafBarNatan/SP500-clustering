@@ -1,5 +1,9 @@
 """Utilities for visualizations."""
 
+from visualization.utils import correlation_histogram
+import pandas as pd
+import copy
+
 def correlation_histogram(dataframe: pd.DataFrame, bins = 'auto', clusters = None, ax = None) -> None:
   """
   Parameters
