@@ -82,7 +82,7 @@ See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an e
 
 ### Model Evaluation
 
-* (Add something)
+* Calinski-Harabasz Index:
 
   
 This is summarized in the following diagram:
@@ -99,7 +99,6 @@ In pairs trading, the idea is to find pairs of tickers that behave similarly.
 When the prices of the tickers behave in opposite ways - i.e. one of the tickers goes up in value,
 while the other goes down - we invest with the expectation that the trend will reverse itself.
 
-Our trading strategy would generalize this to clusters with more than 2 elements.
-
-
+* While traditional pairs trading restricts to clusters with only 2 elements, we can adapt the idea to work with clusters with more than 2 elements.
+* We can try and optimize the trading strategy by applying a classification algorithm to historical data using days with high dispersion.
 
