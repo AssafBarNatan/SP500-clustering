@@ -93,8 +93,9 @@ See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an e
 ## Visualizations
 
 We created many interesting graphics to help us understand the results of our computations.
+These visualizations can be found in the following notebooks: 
 * The EDA notebook contains our exploratory data analysis.
-* The k-means notebook contains .. 
+* The k-means notebook contains visualizations of the clusters and the various metrics we used to compare them.
 
 ## Future Iterations & Extensions
 
