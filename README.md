@@ -77,18 +77,24 @@ See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an e
 * Sector-Based Benchmarks
 
 ### Model Construction/Development
-* K-Means Clustering:
+* K-Means Clustering: 
 * DB-Scan Clustering:
 
 ### Model Evaluation
 
-* Calinski-Harabasz Index: To evaluate and compare the various clusterings we obtained, we used the Calinski-Harabasz Index.
+* Calinski-Harabasz Index: To evaluate/compare the various clusterings we obtained, we used the Calinski-Harabasz Index.
 * See [this website](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.calinski_harabasz_score.html) for more details.
 
-  
+
 ### Summary
 
 ![Summary](/Images/pipeline.png "Summary").
+
+## Visualizations
+
+We created many interesting graphics to help us understand the results of our computations.
+* The EDA notebook contains our exploratory data analysis.
+* The k-means notebook contains .. 
 
 ## Future Iterations & Extensions
 
