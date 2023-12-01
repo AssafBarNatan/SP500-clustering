@@ -100,7 +100,7 @@ def market_adjust(df: pd.DataFrame) -> pd.DataFrame:
   
   return df_c.sub(df.mean(axis = 1), axis = 0)
 
-def industry_adjust(df: pd.DataFrame, clusters = DataBank().ticker_to_sector_map()) -> pd.DataFrame:
+def industry_adjust(df: pd.DataFrame, ticker_to_sector_dict = DataBank().ticker_to_sector_map()) -> pd.DataFrame:
   """
   Parameters
   ----------
@@ -118,14 +118,14 @@ def industry_adjust(df: pd.DataFrame, clusters = DataBank().ticker_to_sector_map
   """
   df_c = copy.deepcopy(df)
 
-  clusters_dict = {tick : label for (tick, label) in zip(df_c.columns, clusters)}
+  ticker_to_sector_dict = {ticker : ticker_to_sector_dict[ticker] for ticker in df_c.columns}
 
   if df_c.columns.nlevels == 1:
-    df_c.columns = pd.MultiIndex.from_arrays((df_c.columns.map(clusters_dict),
+    df_c.columns = pd.MultiIndex.from_arrays((df_c.columns.map(ticker_to_sector_dict),
                                                     df_c.columns),
                                                     names=['Industry', 'Ticker'])
 
-  for industry in set(clusters):
+  for industry in set(ticker_to_sector_dict.values()):
     df_c[industry] = df_c[industry].sub(df_c[industry].mean(axis = 1), axis = 0)
   
   df_c.columns = df_c.columns.droplevel()
@@ -185,7 +185,7 @@ def default_transform_sequence(
     
     return [partial(f, **add_args) for (f, add_args) in zip(default_funcs, default_additional_args)]
 
-def default_transform(transformation_sequence = default_transform_sequence()):
+def default_transform(df, transformation_sequence = default_transform_sequence()):
    """
    This represents the default transformation to be applied to our dataframe of
    adjusted closing prices before it is converted into a `ClusterInput` object.
@@ -205,14 +205,15 @@ def default_transform(transformation_sequence = default_transform_sequence()):
 
    composite_transformation = lambda df : reduce(lambda res, f: f(res), transformation_sequence, df)
 
-   return composite_transformation
+   df_tr = composite_transformation(df)
+   
+   return df_tr
 
 class ClusterInput:
     def __init__(self, df : pd.DataFrame, 
-                 transform : Callable[[pd.DataFrame], pd.DataFrame] = default_transform(),
+                 transform : Callable[[pd.DataFrame], pd.DataFrame] = default_transform,
                  normalize = False, 
-                 API = 'sklearn'
-                 ):
+                 API = 'sklearn'):
         if df.index.name != 'Date' and df.index.inferred_type != 'datetime':
            raise ValueError("The index should be `Date` with `datetime` objects as its values.")
         
@@ -223,7 +224,7 @@ class ClusterInput:
         
         if self.transform is None:
            self.transform = lambda df : df
-        elif normalize is True:
-           self.transform = lambda df : normalize(self.transform(df))
-        else:
-           self.df = self.transform(self.df) if API is None else self.transform(self.df).T
+        if normalize == True:
+           self.transform = lambda df : normalize(self.transform(self.df))
+        
+        self.df = self.transform(self.df) if API is None else self.transform(self.df).T
