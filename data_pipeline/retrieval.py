@@ -133,11 +133,11 @@ def download_historical_data(tickers : List[str] = DataBank().get_tickers(),
 
     try:
         historical_data = pd.read_pickle(data_path)
-        log("Loaded data from saved file.")
+        print("Loaded data from saved file.")
         return historical_data
     
     except Exception as e:
-        log(f"{e}: Failed to load saved data. Loading data...")
+        print(f"{e}: Failed to load saved data. Loading data...")
 
     historical_data = yf.download(
         tickers=tickers, start=start, end=end, interval=interval
@@ -181,7 +181,7 @@ def download_adj_close(tickers : List[str] = DataBank().get_tickers(),
 
     try:
         adj_closing_prices = pd.read_pickle(data_path)
-        log("Loaded from saved data!")
+        print("Loaded from saved data!")
         return adj_closing_prices
     except Exception as e:
         print(f"{e}: Data for this time interval not found. Loading data...")
