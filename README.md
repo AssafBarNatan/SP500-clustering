@@ -55,13 +55,20 @@ Our primary source of data consists of historical data from [Yahoo! Finance](htt
 
 See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an example of historical data for `APPL`.
 
+Our data collection is explained in more detail in the Data Retrieval notebook.
+
 ## Modeling Approach
+
 ### Data Exploration
 
+In order to choose a suitable clustering method, we need to understand what our data looks like (see [this webpage](https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html)).
+
+
 ### Data Processing
-* Normalization:
-    * ROR (rate of return):
-    * $L^2$-normalization:
+We made various adjustments to the closing prices before making our illustrations.
+* Normalizations:
+    * We initially normalized our data with respect to the $L^2$ norm.
+    * We ultimately decided that rate of return (ROR) makes more sense, given the nature of our data.
 * Market adjustment:
     * Market trends can make all stocks move together, artificially
     * increasing correlations between stocks. We subtract from each 
@@ -72,14 +79,14 @@ See [this webpage](https://finance.yahoo.com/quote/AAPL/history?p=APPL) for an e
     * that industry. This allows us to look for outliers within each
     * industry cluster.
 
+This analysis can be found in the EDA notebook.
+We concluded that k-means (or DBSCAN) would be appropriate methods for clustering our data.
 
 ### Benchmarks
-
+* To judge the clusters we obtain via k-means, we compare them to the clustering of the SP500 by industry.
 
 ### Model Construction/Development
-* Upon analyzing the data in the EDA notebook, we concluded that k-means (or DBSCAN) would be appropriate methods for clustering our data.
-* The clusters are obtained and analyzed in the KMeans notebook.
-* To compare our clustering to the baseline, we used the Calinski-Harabasz (See [this website](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.calinski_harabasz_score.html) for more details.) This can also be found in the Kmeans notebook.
+* We used the Calinski-Harabasz (See [this website](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.calinski_harabasz_score.html) for more details.) This can be found in the Kmeans notebook.
   
 
 ### Summary
