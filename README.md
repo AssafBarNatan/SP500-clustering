@@ -65,7 +65,9 @@ In order to choose a suitable clustering method, we need to understand what our 
 
 
 ### Data Processing
-We made various adjustments to the closing prices before making our illustrations.
+
+To make it easier to interpret our data, we made the following adjustments.
+
 * Normalizations:
     * We initially normalized our data with respect to the $L^2$ norm.
     * We ultimately decided that rate of return (ROR) makes more sense, given the nature of our data.
@@ -79,13 +81,12 @@ We made various adjustments to the closing prices before making our illustration
     * that industry. This allows us to look for outliers within each
     * industry cluster.
 
-This analysis can be found in the EDA notebook.
+These ideas are illustrated in the EDA notebook.
+
 We concluded that k-means (or DBSCAN) would be appropriate methods for clustering our data.
 
 ### Benchmarks
 * To judge the clusters we obtain via k-means, we compare them to the clustering of the SP500 by industry.
-
-### Model Construction/Development
 * We used the Calinski-Harabasz (See [this website](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.calinski_harabasz_score.html) for more details.) This can be found in the Kmeans notebook.
   
 
