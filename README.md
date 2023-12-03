@@ -92,7 +92,7 @@ We concluded that k-means (or DBSCAN) would be appropriate methods for clusterin
 
 ### Summary
 
-![Summary](/Images/pipeline.png "Summary").
+![Summary](/Images/BananaCreamClustered.png "Summary").
 
 
 ## Future Iterations & Extensions
