@@ -1,5 +1,7 @@
 # Asset Selection & Diversification By Means Of Clustering
 
+For a quick start, check out the ''Analysis For Slides'' notebook
+
 ## Overview
 Portfolio optimization is one of the central problems of modern finance where one aims to maximize the expected return of a portfolio
 given a prescribed level of risk. This approach to investing relies on a careful and systematic selection of assets. Generally,
